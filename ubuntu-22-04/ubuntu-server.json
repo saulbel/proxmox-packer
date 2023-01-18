@@ -1,0 +1,125 @@
+{
+    "builders":
+    [
+        {
+          "type": "proxmox",
+          "proxmox_url": "https://{{ user `proxmox_url` }}/api2/json",
+          "node": "{{ user `proxmox_node_name` }}",
+          "username": "{{ user `proxmox_api_user` }}",
+          "token": "{{ user `proxmox_api_token` }}",
+          "insecure_skip_tls_verify": true,
+
+          "vm_name": "{{user `vm_name`}}",
+          "vm_id": "{{ user `vmid` }}",
+
+          "template_name": "{{ user `template_name` }}",
+          "template_description": "{{ user `template_description` }}",
+          "iso_file": "{{ user `iso` }}",
+
+          "network_adapters":
+          [
+              {
+                  "model": "virtio",
+                  "bridge": "vmbr0",
+                  "firewall": "false"
+              }
+          ],
+
+          "disks":
+          [
+              {
+                  "type": "scsi",
+                  "disk_size": "{{ user `disk_size` }}",
+                  "storage_pool": "{{ user `storage_pool` }}",
+                  "storage_pool_type": "{{ user `storage_pool_type` }}",
+                  "format": "{{ user `format` }}"
+              }
+          ],
+
+          "cores": "{{ user `cores` }}",
+          "memory": "{{ user `memory` }}",
+          "scsi_controller": "virtio-scsi-single",
+
+          "http_directory": "http",
+          "qemu_agent": true,
+          "unmount_iso": true,
+
+          "cloud_init": true,
+          "cloud_init_storage_pool": "storage",
+
+          "boot_wait": "10s",
+          "boot_command": [
+          "c",
+          "linux /casper/vmlinuz -- autoinstall ds='nocloud-net;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/'",
+          "<enter><wait><wait>",
+          "initrd /casper/initrd",
+          "<enter><wait><wait>",
+          "boot<enter>"
+          ],
+
+          "ssh_username": "{{ user `ssh_username` }}",
+          "ssh_password": "{{ user `ssh_password` }}",
+          "ssh_port": 22,
+          "ssh_timeout": "20m"
+        }
+    ],
+
+    "provisioners":
+    [
+      {
+        "type": "shell",
+        "inline":
+         [
+           "while [ ! -f /var/lib/cloud/instance/boot-finished ]; do echo 'Waiting for cloud-init...'; sleep 1; done",
+           "sudo rm /etc/ssh/ssh_host_*",
+           "sudo truncate -s 0 /etc/machine-id",
+           "sudo apt -y autoremove --purge",
+           "sudo apt -y clean",
+           "sudo apt -y autoclean",
+           "sudo cloud-init clean",
+           "sudo rm -f /etc/cloud/cloud.cfg.d/subiquity-disable-cloudinit-networking.cfg",
+           "sudo sync"
+         ]
+      },
+      {
+        "type": "file",
+        "source": "files/99-pve.cfg",
+        "destination": "/tmp/99-pve.cfg"
+
+      },
+      {
+        "type": "shell",
+        "inline":
+        [
+          "sudo cp /tmp/99-pve.cfg /etc/cloud/cloud.cfg.d/99-pve.cfg"
+        ]
+      },
+      {
+        "type": "shell",
+        "inline":
+        [
+          "sudo apt-get update -y",
+          "sudo apt-get install wget curl vim net-tools -y"
+        ]
+      },
+      {
+        "type": "shell",
+        "inline":
+        [
+          "sudo apt-get install -y ca-certificates curl gnupg lsb-release",
+          "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg",
+          "echo \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null",
+          "sudo apt-get -y update",
+          "sudo apt-get install -y docker-ce docker-ce-cli containerd.io"
+        ]
+      },
+      {
+        "type": "shell",
+        "inline":
+        [
+          "sudo curl -SL https://github.com/docker/compose/releases/download/v2.9.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose",
+          "sudo chmod +x /usr/local/bin/docker-compose"
+        ]
+      }
+   ]
+ }

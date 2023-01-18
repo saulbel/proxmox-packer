@@ -1,0 +1,23 @@
+{
+    "proxmox_url": "your_proxmox_url",
+    "proxmox_node_name": "your_node_name",
+    "proxmox_api_user": "your_api_user",
+    "proxmox_api_token": "your_api_token",
+
+    "vm_name": "ubuntu-server-22.04",
+    "vmid": "200",
+    "iso": "local:iso/ubuntu-22.04.1-live-server-amd64.iso",
+    "template_name": "ubuntu-22-04",
+    "template_description": "Ubuntu 22.04 with docker, docker-compose and net-tools",
+
+    "disk_size": "20G",
+    "storage_pool": "storage",
+    "storage_pool_type": "lvm",
+    "format": "qcow2",
+
+    "cores": "2",
+    "memory": "2048",
+
+    "ssh_username": "ubuntu",
+    "ssh_password": "ubuntu"
+}
