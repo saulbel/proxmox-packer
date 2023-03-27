@@ -10,6 +10,11 @@ Things you need before starting:
 proxmox-packer
 └── scripts
      └── setup.sh
+└── debian-11
+     └── cloud.cfg
+     └── debian-server.pkr.hcl
+     └── preseed.cfg
+     └── vars.pkrvars.hcl
 └── ubuntu-22-04
      └── ubuntu-server.json
      └── vars.json
@@ -25,7 +30,7 @@ proxmox-packer
 ## How to setup this project locally
 - First we should download it with either `git clone` or as `.zip`.
 - Then we will execute `setup.sh` in order to install `packer 1.8`.
-- Then you will have to modify `vars.json` with your `proxmox` data.
+- Then you will have to modify `vars` file with your `proxmox` data.
 
 ## How to run it
 - Once you have everything ready, we can check if our config is valid:
@@ -36,6 +41,7 @@ The configuration is valid.
 - Then to build it:
 ````
 $ packer build -var-file=vars.json ubuntu-server.json
+$ packer build -var-file vars.pkrvars.hcl debian-server.pkr.hcl
 ````
 
 ## Notes
